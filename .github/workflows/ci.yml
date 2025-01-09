@@ -1,0 +1,46 @@
+# This starter workflow is for a CMake project running on a single platform. There is a different starter workflow if you need cross-platform coverage.
+# See: https://github.com/actions/starter-workflows/blob/main/ci/cmake-multi-platform.yml
+name: CMake on a single platform
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    container:
+      image: gagiuntoli/fermi:latest
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: true
+
+    - name: Check syntax
+      run: |
+        files=$(find src -name '*.cc' -o -name '*.h')
+        issues=$(clang-format -style=file -output-replacements-xml $files | grep -c '<replacement ' || true)
+        if [ $issues -gt 0 ]; then
+          echo "Found formatting issues. Exiting."
+          clang-format --dry-run $files
+          exit 1
+        fi
+        echo "No syntax issues."
+
+    - name: Create build directory
+      run: mkdir -p build
+
+    - name: Configure CMake
+      run: cmake -Bbuild -H.
+
+    - name: Build
+      run: cmake --build build --config Release
+
+    - name: Test
+      run: ctest --test-dir build

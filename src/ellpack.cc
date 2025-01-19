@@ -39,6 +39,22 @@ int Ellpack::mvp(std::vector<double> &y, std::vector<double> x) const {
   return 0;
 }
 
+int Ellpack::mvp_nodiag(std::vector<double> &y, std::vector<double> x) const {
+  for (size_t row = 0; row < nrows; row++) {
+    double tmp = 0;
+    for (size_t j = 0; j < non_zeros_per_row; j++) {
+      int index = cols[row * non_zeros_per_row + j];
+      if (index < 0) break;
+
+      if (row != index) {
+        tmp += vals[row * non_zeros_per_row + j] * x[index];
+      }
+    }
+    y[row] = tmp;
+  }
+  return 0;
+}
+
 int Ellpack::solve_cg(std::vector<double> &x, std::vector<double> b) const {
   int max_iters = 10000000;
   int n = nrows;
@@ -76,6 +92,36 @@ int Ellpack::solve_cg(std::vector<double> &x, std::vector<double> b) const {
     residual = norm(r, n);
     iters++;
   }
+  return 0;
+}
+
+int Ellpack::solve_jacobi(std::vector<double> &x, std::vector<double> b) const {
+  int max_iters = 10000000;
+  int n = nrows;
+  std::fill(x.begin(), x.end(), 0.0);
+
+  for (int iter = 0; iter < max_iters; iter++) {
+    std::vector<double> x_new(n);
+
+    mvp_nodiag(x_new, x);
+
+    double norm = 0;
+    for (int i = 0; i < n; i++) {
+      double aii;
+      get(aii, i, i);
+      if (aii < 1.0e-10) {
+        return 2;
+      }
+      x_new[i] = (b[i] - x_new[i]) / aii;
+
+      norm += std::abs(x_new[i] - x[i]);
+    }
+
+    if (norm < 1.0e-7) break;
+
+    x = x_new;
+  }
+
   return 0;
 }
 

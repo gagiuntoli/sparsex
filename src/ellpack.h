@@ -49,7 +49,9 @@ struct Ellpack {
   bool get(double &value, size_t row, size_t col) const;
 
   int mvp(std::vector<double> &y, std::vector<double> x) const;
+  int mvp_nodiag(std::vector<double> &y, std::vector<double> x) const;
   int solve_cg(std::vector<double> &x, std::vector<double> b) const;
+  int solve_jacobi(std::vector<double> &x, std::vector<double> b) const;
 
   std::string toString() const;
 };

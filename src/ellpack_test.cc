@@ -129,3 +129,46 @@ TEST(EllpackTest, delete_row) {
   found = matrix.get(value, 0, 2);
   EXPECT_FALSE(found);
 }
+
+TEST(EllpackTest, solve_jacobi_symmetric_system) {
+  Ellpack matrix(3, 3, 3);
+  matrix.insert(0, 0, 4.0);
+  matrix.insert(0, 1, -1.0);
+  matrix.insert(1, 0, -1.0);
+  matrix.insert(1, 1, 4.0);
+  matrix.insert(1, 2, -1.0);
+  matrix.insert(2, 1, -1.0);
+  matrix.insert(2, 2, 4.0);
+
+  std::vector<double> b = {15.0, 10.0, 10.0};
+  std::vector<double> x(3);
+  std::vector<double> b1(3);
+
+  matrix.solve_jacobi(x, b);
+  matrix.mvp(b1, x);
+
+  for (int i = 0; i < b.size(); i++) {
+    EXPECT_NEAR(b1[i], b[i], 1.0e-6);
+  }
+}
+
+TEST(EllpackTest, solve_jacobi_non_symmetric_system) {
+  Ellpack matrix(3, 3, 3);
+  matrix.insert(0, 0, 4.0);
+  matrix.insert(0, 1, -1.0);
+  matrix.insert(1, 0, -1.0);
+  matrix.insert(1, 1, 4.0);
+  matrix.insert(1, 2, -1.0);
+  matrix.insert(2, 2, 4.0);
+
+  std::vector<double> b = {15.0, 10.0, 10.0};
+  std::vector<double> x(3);
+  std::vector<double> b1(3);
+
+  matrix.solve_jacobi(x, b);
+  matrix.mvp(b1, x);
+
+  for (int i = 0; i < b.size(); i++) {
+    EXPECT_NEAR(b1[i], b[i], 1.0e-6);
+  }
+}
